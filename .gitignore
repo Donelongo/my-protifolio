@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.npm-cache/
+.npmrc
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Local project notes and visual QA artifacts
+AGENTS.md
+design-qa.md
+design-qa*.png
