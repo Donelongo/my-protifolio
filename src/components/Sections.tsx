@@ -24,7 +24,10 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import catholicMezmurLogo from "../assets/catholicmezmur_logo.png";
 import profileImage from "../assets/dagmawi-elias-lewi.webp";
+import dentraceLogo from "../assets/dentrace_logo.png";
+import oreLogo from "../assets/ore_logo.png";
 import {
   contactDetails,
   experience,
@@ -51,6 +54,13 @@ const projectIcons = {
   team: Users,
 };
 
+const projectImages: Partial<Record<Project["id"], string>> = {
+  "catholic-mezmur": catholicMezmurLogo,
+  "catholic-mezmur-mobile": catholicMezmurLogo,
+  "ore-mechanical": oreLogo,
+  dentrace: dentraceLogo,
+};
+
 const skillIcons = [Code2, Server, Database, Map, Smartphone, Wrench];
 
 export function Hero() {
@@ -68,9 +78,12 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="hero-introline">
-            <div className="availability">
-              <span aria-hidden="true" />
-              Addis Ababa, Ethiopia · Full Stack Software Engineer
+            <div className="hero-identity">
+              <p className="hero-name">Dagmawi Elias Lewi</p>
+              <div className="availability">
+                <span aria-hidden="true" />
+                Full Stack Software Engineer · Addis Ababa
+              </div>
             </div>
             <motion.figure
               className="hero-visual"
@@ -89,31 +102,16 @@ export function Hero() {
             </motion.figure>
           </div>
           <h1 id="hero-heading">
-            Full Stack Engineer crafting thoughtful digital experiences<span>.</span>
+            Building clear, fast digital products<span>.</span>
           </h1>
           <p className="hero-summary">
-            I&apos;m Dagmawi Elias Lewi, a Software Engineering graduate building responsive
-            web, backend, mobile, and GIS products with clean code and thoughtful design.
+            Web, backend, mobile, and GIS—designed with care and built to last.
           </p>
           <div className="hero-actions">
             <MagneticLink href="#projects">Explore selected work</MagneticLink>
             <MagneticLink href="#contact" variant="secondary">
               Contact me
             </MagneticLink>
-          </div>
-          <div className="hero-status" aria-label="Portfolio snapshot">
-            <div>
-              <strong>05</strong>
-              <span>Selected projects</span>
-            </div>
-            <div>
-              <strong>06</strong>
-              <span>Technical disciplines</span>
-            </div>
-            <div>
-              <i aria-hidden="true" />
-              <span>Open to collaboration</span>
-            </div>
           </div>
           <div className="hero-technology" aria-label="Core capabilities">
             <span>React</span>
@@ -139,21 +137,14 @@ export function About() {
       <div className="site-container">
         <SectionHeading
           eyebrow="01 · About"
-          title="Product thinking, grounded in clean engineering."
-          description="I care about how a product feels in a user's hands and how well the system behind it holds up."
+          title="Design-minded engineering."
+          description="Clear interfaces. Dependable systems. No unnecessary complexity."
         />
         <div className="about-grid">
           <Reveal className="about-copy">
             <p className="about-lead">
-              I&apos;m a Software Engineering graduate and Full Stack Developer with a strong
-              interest in polished frontend experiences, backed by capable server-side,
-              database, mobile, and GIS development skills.
-            </p>
-            <p>
-              I enjoy turning complex requirements into clear interfaces and maintainable
-              systems. My experience spans responsive web development, Flutter applications,
-              interactive geospatial products, and collaborative product engineering.
-              Currently, I contribute to Dentrace as part of the engineering team.
+              Software Engineering graduate and frontend-focused Full Stack Developer,
+              currently contributing to Dentrace as part of the engineering team.
             </p>
           </Reveal>
 
@@ -162,17 +153,17 @@ export function About() {
               {
                 number: "01",
                 title: "Frontend focused",
-                copy: "Responsive, accessible interfaces with thoughtful hierarchy and detail.",
+                copy: "Responsive, accessible, and polished.",
               },
               {
                 number: "02",
                 title: "Full-stack capable",
-                copy: "Backend APIs, databases, mobile development, and GIS implementation.",
+                copy: "APIs, databases, mobile, and GIS.",
               },
               {
                 number: "03",
                 title: "Collaborative mindset",
-                copy: "Clear communication, practical problem solving, and shared ownership of quality.",
+                copy: "Clear communication and practical problem solving.",
               },
             ].map((item, index) => (
               <Reveal key={item.number} className="principle-row" delay={index * 0.08}>
@@ -192,13 +183,26 @@ export function About() {
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const Icon = projectIcons[project.icon];
+  const projectImage = projectImages[project.id];
   const visualUrl = project.liveUrl ?? project.googlePlayUrl;
   const visual = (
     <>
       <div className="project-number">
         Project {String(index + 1).padStart(2, "0")}
       </div>
-      <Icon size={64} strokeWidth={1.15} aria-hidden="true" />
+      {projectImage ? (
+        <img
+          className="project-logo"
+          src={projectImage}
+          alt={`${project.title} logo`}
+          width="512"
+          height="512"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <Icon size={64} strokeWidth={1.15} aria-hidden="true" />
+      )}
       <span>{visualUrl ? "Open project ↗" : project.category}</span>
     </>
   );
@@ -214,7 +218,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
     >
       {visualUrl ? (
         <a
-          className={`project-visual project-visual--${project.visualTone}`}
+          className={`project-visual project-visual--${project.visualTone} project-visual--${project.id}`}
           href={visualUrl}
           target="_blank"
           rel="noreferrer"
@@ -223,7 +227,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           {visual}
         </a>
       ) : (
-        <div className={`project-visual project-visual--${project.visualTone}`}>{visual}</div>
+        <div
+          className={`project-visual project-visual--${project.visualTone} project-visual--${project.id}`}
+        >
+          {visual}
+        </div>
       )}
 
       <div className="project-body">
@@ -245,16 +253,19 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             <TechTag key={technology}>{technology}</TechTag>
           ))}
         </div>
-        <div className="project-details">
-          <div>
-            <p>Challenge</p>
-            <span>{project.challenge}</span>
+        <details className="project-notes">
+          <summary>View build notes</summary>
+          <div className="project-details">
+            <div>
+              <p>Challenge</p>
+              <span>{project.challenge}</span>
+            </div>
+            <div>
+              <p>Solution</p>
+              <span>{project.solution}</span>
+            </div>
           </div>
-          <div>
-            <p>Solution</p>
-            <span>{project.solution}</span>
-          </div>
-        </div>
+        </details>
         <div className="project-actions">
           {project.liveUrl ? (
             <a href={project.liveUrl} target="_blank" rel="noreferrer">
@@ -304,8 +315,8 @@ export function Projects() {
       <div className="site-container">
         <SectionHeading
           eyebrow="02 · Featured projects"
-          title="Real work, presented with clarity."
-          description="A selection of web, mobile, GIS, and collaborative engineering work—without inflated claims or fictional case studies."
+          title="Selected work."
+          description="Five real projects across web, mobile, GIS, and team engineering."
         />
         <Reveal className="project-filters">
           <p>Choose a track</p>
@@ -373,8 +384,8 @@ export function Experience() {
       <div className="site-container">
         <SectionHeading
           eyebrow="03 · Experience"
-          title="Contributing, learning, and delivering with teams."
-          description="A focused view of Dagmawi's current role, internship experience, and previous software-project support."
+          title="Experience."
+          description="Where I contribute and what I have worked on."
         />
         <div className="timeline" aria-label="Professional experience timeline">
           {experience.map((item, index) => (
@@ -409,8 +420,8 @@ export function Skills() {
       <div className="site-container">
         <SectionHeading
           eyebrow="04 · Capabilities"
-          title="A practical full-stack toolkit."
-          description="Skills are grouped by discipline and shown without arbitrary proficiency percentages."
+          title="Toolkit."
+          description="Technologies I use across product development."
         />
         <div className="skills-grid">
           {skillGroups.map((group, index) => {
@@ -543,8 +554,7 @@ export function Contact({ notify }: { notify: Notify }) {
             <p className="eyebrow">05 · Contact</p>
             <h2>Let&apos;s build something meaningful together<span>.</span></h2>
             <p>
-              Have a project in mind? Reach me directly by email or phone, or connect
-              through LinkedIn and GitHub.
+              Have a project in mind? Let&apos;s talk.
             </p>
             <div className="contact-primary-actions">
               <MagneticLink href={socialLinks.linkedin} external icon="external">

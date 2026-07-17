@@ -31,7 +31,7 @@ export const projects: Project[] = [
       "A clear information structure, responsive interface, focused search, and performance-conscious presentation.",
     technologies: ["Responsive Design", "Search", "Performance", "Clean UI"],
     liveUrl: "https://catholicmezmur.cushtech.co/",
-    visualTone: "violet",
+    visualTone: "blue",
     icon: "music",
   },
   {
