@@ -13,12 +13,10 @@ import {
 import {
   About,
   Contact,
-  CurrentWork,
   Experience,
   Hero,
   Projects,
   Skills,
-  WhyWorkWithMe,
 } from "./components/Sections";
 
 export function App() {
@@ -44,15 +42,17 @@ export function App() {
       <CustomCursor />
       <Navbar />
       <FloatingSocials />
-      <main id="main-content">
-        <Hero />
-        <About />
-        <Projects />
-        <Experience />
-        <Skills />
-        <CurrentWork />
-        <WhyWorkWithMe />
-        <Contact notify={notify} />
+      <main id="main-content" className="portfolio-layout">
+        <aside className="portfolio-intro">
+          <Hero />
+        </aside>
+        <div className="portfolio-content">
+          <About />
+          <Projects />
+          <Experience />
+          <Skills />
+          <Contact notify={notify} />
+        </div>
       </main>
       <Footer />
       <BackToTop />

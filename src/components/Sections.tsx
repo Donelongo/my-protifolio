@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Apple,
   Check,
   Clipboard,
   Code2,
@@ -14,6 +15,7 @@ import {
   MapPin,
   Music2,
   Phone,
+  Play,
   Server,
   Smartphone,
   Sparkles,
@@ -65,24 +67,53 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="availability">
-            <span aria-hidden="true" />
-            Addis Ababa, Ethiopia · Full Stack Software Engineer
+          <div className="hero-introline">
+            <div className="availability">
+              <span aria-hidden="true" />
+              Addis Ababa, Ethiopia · Full Stack Software Engineer
+            </div>
+            <motion.figure
+              className="hero-visual"
+              initial={reduceMotion ? false : { opacity: 0, x: 28 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <img
+                src={profileImage}
+                alt="Portrait of Dagmawi Elias Lewi"
+                width="1200"
+                height="1600"
+                fetchPriority="high"
+                decoding="async"
+              />
+            </motion.figure>
           </div>
           <h1 id="hero-heading">
-            Engineering thoughtful digital experiences from interface to infrastructure<span>.</span>
+            Full Stack Engineer crafting thoughtful digital experiences<span>.</span>
           </h1>
           <p className="hero-summary">
-            I&apos;m Dagmawi Elias Lewi, a Software Engineering graduate and frontend-focused
-            Full Stack Software Engineer. I build responsive web applications, capable
-            backend systems, mobile apps, and GIS experiences with clean code and thoughtful
-            design.
+            I&apos;m Dagmawi Elias Lewi, a Software Engineering graduate building responsive
+            web, backend, mobile, and GIS products with clean code and thoughtful design.
           </p>
           <div className="hero-actions">
             <MagneticLink href="#projects">Explore selected work</MagneticLink>
             <MagneticLink href="#contact" variant="secondary">
               Contact me
             </MagneticLink>
+          </div>
+          <div className="hero-status" aria-label="Portfolio snapshot">
+            <div>
+              <strong>05</strong>
+              <span>Selected projects</span>
+            </div>
+            <div>
+              <strong>06</strong>
+              <span>Technical disciplines</span>
+            </div>
+            <div>
+              <i aria-hidden="true" />
+              <span>Open to collaboration</span>
+            </div>
           </div>
           <div className="hero-technology" aria-label="Core capabilities">
             <span>React</span>
@@ -93,21 +124,6 @@ export function Hero() {
           </div>
         </motion.div>
 
-        <motion.figure
-          className="hero-visual"
-          initial={reduceMotion ? false : { opacity: 0, x: 28 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <img
-            src={profileImage}
-            alt="Portrait of Dagmawi Elias Lewi"
-            width="1200"
-            height="1600"
-            fetchPriority="high"
-            decoding="async"
-          />
-        </motion.figure>
       </div>
       <a className="scroll-cue" href="#about" aria-label="Scroll to about">
         <span />
@@ -176,6 +192,16 @@ export function About() {
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const Icon = projectIcons[project.icon];
+  const visualUrl = project.liveUrl ?? project.googlePlayUrl;
+  const visual = (
+    <>
+      <div className="project-number">
+        Project {String(index + 1).padStart(2, "0")}
+      </div>
+      <Icon size={64} strokeWidth={1.15} aria-hidden="true" />
+      <span>{visualUrl ? "Open project ↗" : project.category}</span>
+    </>
+  );
 
   return (
     <motion.article
@@ -186,11 +212,19 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       exit={{ opacity: 0, y: 14 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
-      <div className={`project-visual project-visual--${project.visualTone}`}>
-        <div className="project-number">{String(index + 1).padStart(2, "0")}.</div>
-        <Icon size={58} strokeWidth={1.2} aria-hidden="true" />
-        <span>{project.category}</span>
-      </div>
+      {visualUrl ? (
+        <a
+          className={`project-visual project-visual--${project.visualTone}`}
+          href={visualUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open ${project.title} ${project.liveUrl ? "website" : "on Google Play"}`}
+        >
+          {visual}
+        </a>
+      ) : (
+        <div className={`project-visual project-visual--${project.visualTone}`}>{visual}</div>
+      )}
 
       <div className="project-body">
         <div className="project-topline">
@@ -224,16 +258,23 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         <div className="project-actions">
           {project.liveUrl ? (
             <a href={project.liveUrl} target="_blank" rel="noreferrer">
-              Live demo <ExternalLink size={15} aria-hidden="true" />
+              Visit website <ExternalLink size={15} aria-hidden="true" />
             </a>
-          ) : (
+          ) : !project.googlePlayUrl ? (
             <span className="unavailable-link" aria-label="No public demo available">
               No public demo
             </span>
-          )}
-          <span className="unavailable-link" title="Repository link not provided">
-            <GitFork size={15} aria-hidden="true" /> GitHub not provided
-          </span>
+          ) : null}
+          {project.googlePlayUrl ? (
+            <a href={project.googlePlayUrl} target="_blank" rel="noreferrer">
+              <Play size={15} fill="currentColor" aria-hidden="true" /> Google Play
+            </a>
+          ) : null}
+          {project.appStoreUrl ? (
+            <a href={project.appStoreUrl} target="_blank" rel="noreferrer">
+              <Apple size={15} aria-hidden="true" /> App Store
+            </a>
+          ) : null}
         </div>
       </div>
     </motion.article>
@@ -242,11 +283,21 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
 export function Projects() {
   const [filter, setFilter] = useState<"All" | ProjectCategory>("All");
+  const [selectedId, setSelectedId] = useState(projects[0].id);
   const filteredProjects = useMemo(
     () => (filter === "All" ? projects : projects.filter((project) => project.category === filter)),
     [filter],
   );
+  const selectedProject =
+    filteredProjects.find((project) => project.id === selectedId) ?? filteredProjects[0];
+  const selectedIndex = projects.findIndex((project) => project.id === selectedProject.id);
   const filters: ("All" | ProjectCategory)[] = ["All", "Web", "Mobile", "GIS", "Team"];
+
+  useEffect(() => {
+    if (!filteredProjects.some((project) => project.id === selectedId)) {
+      setSelectedId(filteredProjects[0].id);
+    }
+  }, [filteredProjects, selectedId]);
 
   return (
     <section id="projects" className="section-block">
@@ -257,7 +308,7 @@ export function Projects() {
           description="A selection of web, mobile, GIS, and collaborative engineering work—without inflated claims or fictional case studies."
         />
         <Reveal className="project-filters">
-          <p>Filter work</p>
+          <p>Choose a track</p>
           <div role="group" aria-label="Filter projects by category">
             {filters.map((item) => (
               <button
@@ -273,13 +324,44 @@ export function Projects() {
           </div>
         </Reveal>
 
-        <motion.div className="projects-list" layout>
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, index) => (
-              <ProjectCard key={project.id} project={project} index={index} />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        <div className="project-explorer">
+          <Reveal className="project-index" aria-label="Select a project">
+            <div className="project-index__progress" aria-hidden="true">
+              <span style={{ width: `${((selectedIndex + 1) / projects.length) * 100}%` }} />
+            </div>
+            {filteredProjects.map((project) => {
+              const projectIndex = projects.findIndex((item) => item.id === project.id);
+              const active = project.id === selectedProject.id;
+              return (
+                <button
+                  type="button"
+                  key={project.id}
+                  className={active ? "active" : ""}
+                  onClick={() => setSelectedId(project.id)}
+                  aria-pressed={active}
+                >
+                  <span>{String(projectIndex + 1).padStart(2, "0")}</span>
+                  <span>
+                    <strong>{project.title}</strong>
+                    <small>{project.category}</small>
+                  </span>
+                  <i aria-hidden="true" />
+                </button>
+              );
+            })}
+            <p>{filteredProjects.length} real projects · select to inspect</p>
+          </Reveal>
+
+          <motion.div className="project-stage" layout>
+            <AnimatePresence mode="wait">
+              <ProjectCard
+                key={selectedProject.id}
+                project={selectedProject}
+                index={selectedIndex}
+              />
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -458,7 +540,7 @@ export function Contact({ notify }: { notify: Notify }) {
       <div className="site-container">
         <Reveal className="contact-panel">
           <div className="contact-intro">
-            <p className="eyebrow">07 · Contact</p>
+            <p className="eyebrow">05 · Contact</p>
             <h2>Let&apos;s build something meaningful together<span>.</span></h2>
             <p>
               Have a project in mind? Reach me directly by email or phone, or connect

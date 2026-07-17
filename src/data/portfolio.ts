@@ -10,6 +10,8 @@ export type Project = {
   solution: string;
   technologies: string[];
   liveUrl?: string;
+  googlePlayUrl?: string;
+  appStoreUrl?: string;
   collaboration?: string;
   visualTone: "emerald" | "blue" | "orange" | "cyan" | "violet";
   icon: "music" | "mobile" | "mechanical" | "map" | "team";
@@ -44,6 +46,8 @@ export const projects: Project[] = [
     solution:
       "A Flutter-based cross-platform application designed around simple navigation and dependable access.",
     technologies: ["Flutter", "Android", "Cross-platform"],
+    googlePlayUrl:
+      "https://play.google.com/store/search?q=catholic+mezmur+app&c=apps&hl=en",
     visualTone: "blue",
     icon: "mobile",
   },
