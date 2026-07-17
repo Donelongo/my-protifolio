@@ -3,7 +3,6 @@ import {
   BackToTop,
   CustomCursor,
   FloatingSocials,
-  Footer,
   LoadingScreen,
   Navbar,
   NotFound,
@@ -54,7 +53,6 @@ export function App() {
           <Contact notify={notify} />
         </div>
       </main>
-      <Footer />
       <BackToTop />
       <Toast message={toast} />
     </>

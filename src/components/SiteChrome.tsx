@@ -299,47 +299,6 @@ export function Toast({ message }: { message: string }) {
   );
 }
 
-export function Footer() {
-  return (
-    <footer className="site-footer">
-      <div className="site-container footer-grid">
-        <div>
-          <a className="wordmark" href="#home">
-            DEL<span>.</span>
-          </a>
-          <p>Dagmawi Elias Lewi · Full Stack Software Engineer</p>
-          <p>Addis Ababa, Ethiopia</p>
-        </div>
-        <div>
-          <p className="footer-label">Navigation</p>
-          <div className="footer-links">
-            {navigation.map((item) => (
-              <a key={item.id} href={item.href}>
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="footer-label">Connect</p>
-          <div className="footer-links">
-            <a href={socialLinks.github} target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-            <a href={socialLinks.linkedin} target="_blank" rel="noreferrer">
-              LinkedIn
-            </a>
-          </div>
-        </div>
-      </div>
-      <div className="site-container footer-bottom">
-        <p>© {new Date().getFullYear()} Dagmawi Elias Lewi. All rights reserved.</p>
-        <p>Designed and built with care in Addis Ababa.</p>
-      </div>
-    </footer>
-  );
-}
-
 export function NotFound() {
   return (
     <main className="not-found">
