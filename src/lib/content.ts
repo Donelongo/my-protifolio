@@ -11,6 +11,13 @@ const normalizeProjects = (items: Project[]) =>
   items.filter((project) => project.published !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 const sortProjects = (items: Project[]) => [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
+// Firestore rejects `undefined`, while optional form fields naturally produce it.
+// Strip those values at the persistence boundary so every admin save is valid.
+const withoutUndefined = <T extends object>(value: T): T =>
+  Object.fromEntries(
+    Object.entries(value).filter(([, fieldValue]) => fieldValue !== undefined),
+  ) as T;
+
 export function usePortfolioContent() {
   const [profile, setProfile] = useState<PortfolioProfile>(defaultProfile);
   const [projects, setProjects] = useState<Project[]>(normalizeProjects(defaultProjects));
@@ -68,13 +75,19 @@ export function usePortfolioContent() {
 export async function saveProfile(profile: PortfolioProfile) {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is not configured.");
-  await services.firestore.setDoc(services.firestore.doc(services.db, "portfolio", "profile"), profile, { merge: true });
+  await services.firestore.setDoc(
+    services.firestore.doc(services.db, "portfolio", "profile"),
+    withoutUndefined(profile),
+  );
 }
 
 export async function saveProject(project: Project) {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is not configured.");
-  await services.firestore.setDoc(services.firestore.doc(services.db, "projects", project.id), project);
+  await services.firestore.setDoc(
+    services.firestore.doc(services.db, "projects", project.id),
+    withoutUndefined(project),
+  );
 }
 
 export async function removeProject(id: string) {
@@ -88,7 +101,10 @@ export async function seedPortfolio() {
   if (!services) throw new Error("Firebase is not configured.");
   const { db, firestore } = services;
   const batch = firestore.writeBatch(db);
-  batch.set(firestore.doc(db, "portfolio", "profile"), defaultProfile, { merge: true });
-  defaultProjects.forEach((project, index) => batch.set(firestore.doc(db, "projects", project.id), { ...project, order: index, published: true }));
+  batch.set(firestore.doc(db, "portfolio", "profile"), withoutUndefined(defaultProfile));
+  defaultProjects.forEach((project, index) => batch.set(
+    firestore.doc(db, "projects", project.id),
+    withoutUndefined({ ...project, order: index, published: true }),
+  ));
   await batch.commit();
 }
