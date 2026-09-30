@@ -15,6 +15,40 @@ export type Project = {
   collaboration?: string;
   visualTone: "emerald" | "blue" | "orange" | "cyan" | "violet";
   icon: "music" | "mobile" | "mechanical" | "map" | "team";
+  imageUrl?: string;
+  assetKey?: "catholic-mezmur" | "ore-mechanical" | "dentrace";
+  published?: boolean;
+  order?: number;
+};
+
+export type PortfolioProfile = {
+  name: string;
+  role: string;
+  location: string;
+  headline: string;
+  summary: string;
+  aboutTitle: string;
+  aboutLead: string;
+  email: string;
+  phone: string;
+  github: string;
+  linkedin: string;
+  portraitUrl?: string;
+};
+
+export const defaultProfile: PortfolioProfile = {
+  name: "Dagmawi Elias Lewi",
+  role: "Full Stack Software Engineer",
+  location: "Addis Ababa",
+  headline: "Building clear, fast digital products.",
+  summary: "Web, backend, mobile, and GIS—designed with care and built to last.",
+  aboutTitle: "Design-minded engineering.",
+  aboutLead:
+    "Software Engineering graduate and frontend-focused Full Stack Developer, currently contributing to Dentrace as part of the engineering team.",
+  email: "dagmawieliaswork@gmail.com",
+  phone: "+251911110650",
+    github: "http://github.com/donelongo/",
+  linkedin: "https://www.linkedin.com/in/dagmawi-elias-lewi-842699242/",
 };
 
 export const projects: Project[] = [
@@ -33,6 +67,9 @@ export const projects: Project[] = [
     liveUrl: "https://catholicmezmur.cushtech.co/",
     visualTone: "blue",
     icon: "music",
+    assetKey: "catholic-mezmur",
+    published: true,
+    order: 0,
   },
   {
     id: "catholic-mezmur-mobile",
@@ -50,6 +87,9 @@ export const projects: Project[] = [
       "https://play.google.com/store/search?q=catholic+mezmur+app&c=apps&hl=en",
     visualTone: "blue",
     icon: "mobile",
+    assetKey: "catholic-mezmur",
+    published: true,
+    order: 1,
   },
   {
     id: "ore-mechanical",
@@ -66,6 +106,9 @@ export const projects: Project[] = [
     liveUrl: "https://ore-mechanical-enegineering.web.app/",
     visualTone: "orange",
     icon: "mechanical",
+    assetKey: "ore-mechanical",
+    published: true,
+    order: 2,
   },
   {
     id: "agro-climate",
@@ -89,6 +132,8 @@ export const projects: Project[] = [
     ],
     visualTone: "cyan",
     icon: "map",
+    published: true,
+    order: 3,
   },
   {
     id: "dentrace",
@@ -106,6 +151,9 @@ export const projects: Project[] = [
     collaboration: "Collaborative work · Engineering team contribution",
     visualTone: "emerald",
     icon: "team",
+    assetKey: "dentrace",
+    published: true,
+    order: 4,
   },
 ];
 

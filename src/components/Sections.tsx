@@ -29,13 +29,13 @@ import profileImage from "../assets/dagmawi-elias-lewi.webp";
 import dentraceLogo from "../assets/dentrace_logo.png";
 import oreLogo from "../assets/ore_logo.png";
 import {
-  contactDetails,
+  defaultProfile,
   experience,
+  type PortfolioProfile,
   type Project,
   type ProjectCategory,
   projects,
   skillGroups,
-  socialLinks,
 } from "../data/portfolio";
 import {
   MagneticLink,
@@ -63,7 +63,7 @@ const projectImages: Partial<Record<Project["id"], string>> = {
 
 const skillIcons = [Code2, Server, Database, Map, Smartphone, Wrench];
 
-export function Hero() {
+export function Hero({ profile = defaultProfile }: { profile?: PortfolioProfile }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -79,10 +79,10 @@ export function Hero() {
         >
           <div className="hero-introline">
             <div className="hero-identity">
-              <p className="hero-name">Dagmawi Elias Lewi</p>
+              <p className="hero-name">{profile.name}</p>
               <div className="availability">
                 <span aria-hidden="true" />
-                Full Stack Software Engineer · Addis Ababa
+                {profile.role} · {profile.location}
               </div>
             </div>
             <motion.figure
@@ -92,8 +92,8 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
             >
               <img
-                src={profileImage}
-                alt="Portrait of Dagmawi Elias Lewi"
+                src={profile.portraitUrl || profileImage}
+                alt={`Portrait of ${profile.name}`}
                 width="1200"
                 height="1600"
                 fetchPriority="high"
@@ -102,10 +102,10 @@ export function Hero() {
             </motion.figure>
           </div>
           <h1 id="hero-heading">
-            Building clear, fast digital products<span>.</span>
+            {profile.headline.replace(/\.$/, "")}<span>.</span>
           </h1>
           <p className="hero-summary">
-            Web, backend, mobile, and GIS—designed with care and built to last.
+            {profile.summary}
           </p>
           <div className="hero-actions">
             <MagneticLink href="#projects">Explore selected work</MagneticLink>
@@ -131,20 +131,19 @@ export function Hero() {
   );
 }
 
-export function About() {
+export function About({ profile = defaultProfile }: { profile?: PortfolioProfile }) {
   return (
     <section id="about" className="section-block section-block--tinted">
       <div className="site-container">
         <SectionHeading
           eyebrow="01 · About"
-          title="Design-minded engineering."
+          title={profile.aboutTitle}
           description="Clear interfaces. Dependable systems. No unnecessary complexity."
         />
         <div className="about-grid">
           <Reveal className="about-copy">
             <p className="about-lead">
-              Software Engineering graduate and frontend-focused Full Stack Developer,
-              currently contributing to Dentrace as part of the engineering team.
+              {profile.aboutLead}
             </p>
           </Reveal>
 
@@ -183,7 +182,7 @@ export function About() {
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const Icon = projectIcons[project.icon];
-  const projectImage = projectImages[project.id];
+  const projectImage = project.imageUrl ?? projectImages[project.assetKey ?? project.id];
   const visualUrl = project.liveUrl ?? project.googlePlayUrl;
   const visual = (
     <>
@@ -292,21 +291,20 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   );
 }
 
-export function Projects() {
+export function Projects({ projects }: { projects: Project[] }) {
   const [filter, setFilter] = useState<"All" | ProjectCategory>("All");
-  const [selectedId, setSelectedId] = useState(projects[0].id);
+  const [selectedId, setSelectedId] = useState(projects[0]?.id ?? "");
   const filteredProjects = useMemo(
     () => (filter === "All" ? projects : projects.filter((project) => project.category === filter)),
     [filter],
   );
-  const selectedProject =
-    filteredProjects.find((project) => project.id === selectedId) ?? filteredProjects[0];
-  const selectedIndex = projects.findIndex((project) => project.id === selectedProject.id);
+  const selectedProject = filteredProjects.find((project) => project.id === selectedId) ?? filteredProjects[0];
+  const selectedIndex = selectedProject ? projects.findIndex((project) => project.id === selectedProject.id) : -1;
   const filters: ("All" | ProjectCategory)[] = ["All", "Web", "Mobile", "GIS", "Team"];
 
   useEffect(() => {
     if (!filteredProjects.some((project) => project.id === selectedId)) {
-      setSelectedId(filteredProjects[0].id);
+      setSelectedId(filteredProjects[0]?.id ?? "");
     }
   }, [filteredProjects, selectedId]);
 
@@ -316,7 +314,7 @@ export function Projects() {
         <SectionHeading
           eyebrow="02 · Featured projects"
           title="Selected work."
-          description="Five real projects across web, mobile, GIS, and team engineering."
+          description={`${projects.length} real project${projects.length === 1 ? "" : "s"} across web, mobile, GIS, and team engineering.`}
         />
         <Reveal className="project-filters">
           <p>Choose a track</p>
@@ -365,11 +363,11 @@ export function Projects() {
 
           <motion.div className="project-stage" layout>
             <AnimatePresence mode="wait">
-              <ProjectCard
+              {selectedProject ? <ProjectCard
                 key={selectedProject.id}
                 project={selectedProject}
                 index={selectedIndex}
-              />
+              /> : <div className="projects-empty">No published projects yet.</div>}
             </AnimatePresence>
           </motion.div>
         </div>
@@ -522,10 +520,10 @@ export function WhyWorkWithMe() {
   );
 }
 
-export function Contact({ notify }: { notify: Notify }) {
+export function Contact({ notify, profile = defaultProfile }: { notify: Notify; profile?: PortfolioProfile }) {
   const copyEmailFallback = () => {
     const textArea = document.createElement("textarea");
-    textArea.value = contactDetails.email;
+    textArea.value = profile.email;
     textArea.setAttribute("readonly", "");
     textArea.style.position = "fixed";
     textArea.style.opacity = "0";
@@ -539,10 +537,10 @@ export function Contact({ notify }: { notify: Notify }) {
   const handleCopy = async () => {
     try {
       if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
-      await navigator.clipboard.writeText(contactDetails.email);
+      await navigator.clipboard.writeText(profile.email);
       notify("Email copied to clipboard.");
     } catch {
-      notify(copyEmailFallback() ? "Email copied to clipboard." : `Email: ${contactDetails.email}`);
+      notify(copyEmailFallback() ? "Email copied to clipboard." : `Email: ${profile.email}`);
     }
   };
 
@@ -557,10 +555,10 @@ export function Contact({ notify }: { notify: Notify }) {
               Have a project in mind? Let&apos;s talk.
             </p>
             <div className="contact-primary-actions">
-              <MagneticLink href={socialLinks.linkedin} external icon="external">
+              <MagneticLink href={profile.linkedin} external icon="external">
                 Connect on LinkedIn
               </MagneticLink>
-              <MagneticLink href={socialLinks.github} variant="secondary" external icon="external">
+              <MagneticLink href={profile.github} variant="secondary" external icon="external">
                 View GitHub
               </MagneticLink>
             </div>
@@ -570,24 +568,24 @@ export function Contact({ notify }: { notify: Notify }) {
             <div className="contact-row">
               <div><Clipboard size={18} /><span>Professional email</span></div>
               <button type="button" onClick={handleCopy} aria-label="Copy professional email">
-                {contactDetails.email} <Copy size={15} />
+                {profile.email} <Copy size={15} />
               </button>
             </div>
             <div className="contact-row">
               <div><Phone size={18} /><span>Phone</span></div>
-              <a href={`tel:${contactDetails.phone}`} aria-label={`Call ${contactDetails.phone}`}>
-                {contactDetails.phone}
+              <a href={`tel:${profile.phone}`} aria-label={`Call ${profile.phone}`}>
+                {profile.phone}
               </a>
             </div>
             <div className="contact-row">
               <div><MapPin size={18} /><span>Location</span></div>
-              <span>Addis Ababa, Ethiopia</span>
+              <span>{profile.location}, Ethiopia</span>
             </div>
             <div className="contact-social-pair">
-              <a href={socialLinks.github} target="_blank" rel="noreferrer">
+              <a href={profile.github} target="_blank" rel="noreferrer">
                 <GitFork size={18} /> GitHub <ExternalLink size={14} />
               </a>
-              <a href={socialLinks.linkedin} target="_blank" rel="noreferrer">
+              <a href={profile.linkedin} target="_blank" rel="noreferrer">
                 <BriefcaseBusiness size={18} /> LinkedIn <ExternalLink size={14} />
               </a>
             </div>

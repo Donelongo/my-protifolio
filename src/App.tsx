@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import {
   BackToTop,
   CustomCursor,
@@ -17,11 +17,16 @@ import {
   Projects,
   Skills,
 } from "./components/Sections";
+import { usePortfolioContent } from "./lib/content";
+
+const AdminPage = lazy(() => import("./components/AdminPage").then((module) => ({ default: module.AdminPage })));
 
 export function App() {
+  const content = usePortfolioContent();
   const [toast, setToast] = useState("");
   const toastTimer = useRef<number | undefined>(undefined);
-  const validPath = ["/", "/index.html"].includes(window.location.pathname);
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  const validPath = ["/", "/index.html", "/admin"].includes(path);
 
   const notify = useCallback((message: string) => {
     window.clearTimeout(toastTimer.current);
@@ -30,6 +35,7 @@ export function App() {
   }, []);
 
   if (!validPath) return <NotFound />;
+  if (path === "/admin") return <Suspense fallback={<div className="admin-loading">Opening Portfolio Studio…</div>}><AdminPage /></Suspense>;
 
   return (
     <>
@@ -40,17 +46,17 @@ export function App() {
       <ScrollProgress />
       <CustomCursor />
       <Navbar />
-      <FloatingSocials />
+      <FloatingSocials github={content.profile.github} linkedin={content.profile.linkedin} />
       <main id="main-content" className="portfolio-layout">
         <aside className="portfolio-intro">
-          <Hero />
+          <Hero profile={content.profile} />
         </aside>
         <div className="portfolio-content">
-          <About />
-          <Projects />
+          <About profile={content.profile} />
+          <Projects projects={content.projects} />
           <Experience />
           <Skills />
-          <Contact notify={notify} />
+          <Contact notify={notify} profile={content.profile} />
         </div>
       </main>
       <BackToTop />

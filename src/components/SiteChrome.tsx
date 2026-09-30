@@ -15,7 +15,6 @@ import {
   useScroll,
   useSpring,
 } from "framer-motion";
-import { socialLinks } from "../data/portfolio";
 import { MagneticLink } from "./UI";
 
 const navigation = [
@@ -234,15 +233,15 @@ export function Navbar() {
   );
 }
 
-export function FloatingSocials() {
+export function FloatingSocials({ github, linkedin }: { github: string; linkedin: string }) {
   return (
     <aside className="floating-socials" aria-label="Social links">
-      <a href={socialLinks.github} target="_blank" rel="noreferrer" aria-label="GitHub">
+      <a href={github} target="_blank" rel="noreferrer" aria-label="GitHub">
         <GitFork size={17} />
       </a>
       <span />
       <a
-        href={socialLinks.linkedin}
+        href={linkedin}
         target="_blank"
         rel="noreferrer"
         aria-label="LinkedIn"
