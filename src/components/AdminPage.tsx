@@ -265,7 +265,7 @@ function ProjectEditor({ project, update, save, remove, move, busy }: { project:
         <Field label="Google Play URL" value={project.googlePlayUrl ?? ""} onChange={(value) => update({ googlePlayUrl: value || undefined })} />
         <Field label="App Store URL" value={project.appStoreUrl ?? ""} onChange={(value) => update({ appStoreUrl: value || undefined })} />
         <Field label="Collaboration note" value={project.collaboration ?? ""} onChange={(value) => update({ collaboration: value || undefined })} />
-        <ImageUpload label="Project image or logo" value={project.imageUrl ?? ""} path={`projects/${project.id}`} onChange={(value) => update({ imageUrl: value || undefined, assetKey: undefined })} wide />
+        <ImageUpload label="Project image or logo" value={project.imageUrl ?? ""} onChange={(value) => update({ imageUrl: value || undefined, assetKey: undefined })} wide />
         <Select label="Existing logo" value={project.assetKey ?? ""} options={["", "catholic-mezmur", "ore-mechanical", "dentrace"]} onChange={(value) => update({ assetKey: (value || undefined) as Project["assetKey"] })} />
         <Select
           label="Visual tone"
@@ -291,7 +291,7 @@ function ProfileEditor({ profile, update, save, busy }: { profile: PortfolioProf
       <Field label="Phone" value={profile.phone} onChange={(value) => update("phone", value)} />
       <Field label="GitHub URL" value={profile.github} onChange={(value) => update("github", value)} />
       <Field label="LinkedIn URL" value={profile.linkedin} onChange={(value) => update("linkedin", value)} wide />
-      <ImageUpload label="Profile portrait" value={profile.portraitUrl ?? ""} path="profile" onChange={(value) => update("portraitUrl", value)} wide />
+      <ImageUpload label="Profile portrait" value={profile.portraitUrl ?? ""} onChange={(value) => update("portraitUrl", value)} wide />
       <Field label="Hero headline" value={profile.headline} onChange={(value) => update("headline", value)} wide />
       <TextArea label="Hero summary" value={profile.summary} onChange={(value) => update("summary", value)} wide />
       <Field label="About section title" value={profile.aboutTitle} onChange={(value) => update("aboutTitle", value)} wide />
@@ -320,36 +320,27 @@ function ToolkitEditor({ groups, update, save, busy }: { groups: SkillGroup[]; u
 
 function Field({ label, value, onChange, wide, type = "text" }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean; type?: string }) { return <label className={wide ? "wide" : ""}>{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
 
-function ImageUpload({ label, value, path, onChange, wide }: { label: string; value: string; path: string; onChange: (value: string) => void; wide?: boolean }) {
+function ImageUpload({ label, value, onChange, wide }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const uploadImage = async (file?: File) => {
     if (!file) return;
     setError("");
-    if (!file.type.startsWith("image/")) {
-      setError("Choose a PNG, JPG, WebP, GIF, or SVG image.");
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setError("Choose a PNG, JPG, or WebP image.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("The image must be smaller than 5 MB.");
+    if (file.size > 8 * 1024 * 1024) {
+      setError("The source image must be smaller than 8 MB.");
       return;
     }
     setUploading(true);
     try {
-      const services = await getFirebaseServices();
-      if (!services) throw new Error("Firebase is not connected.");
-      const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]/g, "-");
-      const imageRef = services.storageModule.ref(services.storage, `portfolio-media/${path}/${Date.now()}-${safeName}`);
-      await services.storageModule.uploadBytes(imageRef, file, { contentType: file.type });
-      onChange(await services.storageModule.getDownloadURL(imageRef));
+      onChange(await optimizeImageForFirestore(file));
     } catch (uploadError) {
       const uploadMessage = uploadError instanceof Error ? uploadError.message : "";
-      setError(
-        uploadMessage.includes("storage/unauthorized")
-          ? "Firebase Storage denied the upload. Publish the included storage.rules file in Firebase Storage → Rules, or paste a public image URL below."
-          : uploadMessage || "The image could not be uploaded. You can paste a public image URL below instead.",
-      );
+      setError(uploadMessage || "The image could not be prepared. You can paste a public image URL below instead.");
     } finally {
       setUploading(false);
     }
@@ -360,14 +351,48 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
     <div className="admin-image-upload__content">
       {value ? <img src={value} alt="Current upload preview" /> : <div className="admin-image-upload__placeholder"><Upload size={22} /><small>No image selected</small></div>}
       <div>
-        <label className="admin-upload-button"><Upload size={15} /> {uploading ? "Uploading…" : value ? "Replace image" : "Choose image"}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" disabled={uploading} onChange={(event) => { void uploadImage(event.target.files?.[0]); event.target.value = ""; }} /></label>
+        <label className="admin-upload-button"><Upload size={15} /> {uploading ? "Optimizing…" : value ? "Replace image" : "Choose image"}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading} onChange={(event) => { void uploadImage(event.target.files?.[0]); event.target.value = ""; }} /></label>
         {value ? <button type="button" className="admin-remove-image" onClick={() => onChange("")}>Remove image</button> : null}
-        <small>PNG, JPG, WebP, GIF or SVG · maximum 5 MB</small>
+        <small>PNG, JPG or WebP · optimized locally and stored with the project · no paid Storage required</small>
         {error ? <small className="admin-upload-error">{error}</small> : null}
       </div>
     </div>
     <label className="admin-image-url">Or paste a public image URL<input type="url" value={value} placeholder="https://example.com/logo.png" onChange={(event) => { setError(""); onChange(event.target.value); }} /></label>
   </div>;
+}
+
+async function optimizeImageForFirestore(file: File): Promise<string> {
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("This image could not be read."));
+      element.src = sourceUrl;
+    });
+    const maxDimension = 1200;
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Your browser could not prepare this image.");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    let quality = 0.84;
+    let result = canvas.toDataURL("image/webp", quality);
+    const bytes = (dataUrl: string) => Math.ceil((dataUrl.length - dataUrl.indexOf(",") - 1) * 0.75);
+    while (bytes(result) > 360 * 1024 && quality > 0.46) {
+      quality -= 0.08;
+      result = canvas.toDataURL("image/webp", quality);
+    }
+    if (bytes(result) > 500 * 1024) {
+      throw new Error("The optimized image is still too large. Choose a smaller image or use a public image URL.");
+    }
+    return result;
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
 }
 function TextArea({ label, value, onChange, wide }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean }) { return <label className={wide ? "wide" : ""}>{label}<textarea rows={4} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
 function Select({ label, value, options, onChange, formatOption }: { label: string; value: string; options: string[]; onChange: (value: string) => void; formatOption?: (option: string) => string }) { return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option || "none"} value={option}>{option ? (formatOption?.(option) ?? option) : "None"}</option>)}</select></label>; }
