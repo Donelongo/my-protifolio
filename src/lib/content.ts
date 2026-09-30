@@ -9,9 +9,14 @@ import {
 } from "../data/portfolio";
 import { firebaseConfigured, getFirebaseServices } from "./firebase";
 
-const normalizeProjects = (items: Project[]) =>
-  items.filter((project) => project.published !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 const sortProjects = (items: Project[]) => [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+const normalizeProjects = (items: Project[]) => {
+  const uniqueByTitle = new Map<string, Project>();
+  sortProjects(items)
+    .filter((project) => project.published !== false)
+    .forEach((project) => uniqueByTitle.set(project.title.trim().toLocaleLowerCase(), project));
+  return [...uniqueByTitle.values()];
+};
 
 // Firestore rejects `undefined`, while optional form fields naturally produce it.
 // Strip those values at the persistence boundary so every admin save is valid.
@@ -104,7 +109,14 @@ export async function saveProject(project: Project) {
     services.firestore.doc(services.db, "projects", project.id),
     withoutUndefined(project),
   );
-  await addTechnologiesToToolkit(project.technologies);
+  try {
+    await addTechnologiesToToolkit(project.technologies);
+  } catch (error) {
+    // The project is already safely persisted. Toolkit synchronization is
+    // best-effort so a separate rule/configuration issue cannot cause a user
+    // to save the same project repeatedly.
+    console.warn("Project saved, but toolkit synchronization was skipped.", error);
+  }
 }
 
 export async function saveToolkit(groups: SkillGroup[]) {

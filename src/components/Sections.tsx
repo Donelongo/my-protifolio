@@ -297,7 +297,7 @@ export function Projects({ projects }: { projects: Project[] }) {
   const [selectedId, setSelectedId] = useState(projects[0]?.id ?? "");
   const filteredProjects = useMemo(
     () => (filter === "All" ? projects : projects.filter((project) => project.category === filter)),
-    [filter],
+    [filter, projects],
   );
   const selectedProject = filteredProjects.find((project) => project.id === selectedId) ?? filteredProjects[0];
   const selectedIndex = selectedProject ? projects.findIndex((project) => project.id === selectedProject.id) : -1;
