@@ -1692,6 +1692,22 @@ img {
 .admin-upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
 .admin-remove-image { border-color: var(--border); background: transparent; color: #aab4c1 !important; }
 .admin-upload-error { color: #fca5a5 !important; }
+.admin-image-url { width: 100%; margin: 2px 0 0 !important; }
+.admin-image-url input { margin-top: 8px; }
+.admin-toolkit-editor { overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: #0e0f11; }
+.admin-toolkit-intro { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; border-bottom: 1px solid var(--border); background: #0b0c0e; }
+.admin-toolkit-intro > div { display: grid; gap: 5px; }
+.admin-toolkit-intro strong { color: var(--white); font-size: .86rem; }
+.admin-toolkit-intro span { color: #788494; font-size: .72rem; }
+.admin-toolkit-intro > button { display: inline-flex; align-items: center; gap: 7px; padding: 10px 12px; border: 1px solid rgba(34,197,94,.3); border-radius: 8px; color: #9ff2ba; font-size: .72rem; }
+.admin-toolkit-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px 22px; }
+.admin-toolkit-group { padding: 0 15px 14px; border: 1px solid var(--border); border-radius: 10px; background: #0b0c0e; }
+.admin-toolkit-group label { display: grid; gap: 8px; margin-top: 15px; color: #8e9aaa; font-size: .69rem; font-weight: 600; letter-spacing: .055em; text-transform: uppercase; }
+.admin-toolkit-group input,
+.admin-toolkit-group textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; outline: none; background: #101216; color: var(--white); font: inherit; font-size: .8rem; line-height: 1.5; letter-spacing: normal; text-transform: none; }
+.admin-toolkit-group input { min-height: 42px; padding: 0 11px; }
+.admin-toolkit-group textarea { padding: 10px 11px; resize: vertical; }
+.admin-remove-category { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; color: #c98787; font-size: .68rem; }
 .admin-editor__actions { display: flex; justify-content: space-between; gap: 12px; padding: 18px 22px; border-top: 1px solid var(--border); background: #0b0c0e; }
 .admin-editor__actions--right { justify-content: flex-end; }
 .admin-profile-editor { max-width: 920px; }
@@ -1732,6 +1748,8 @@ img {
   .admin-project-list { grid-template-columns: 1fr; }
   .admin-seed-banner { align-items: stretch; flex-direction: column; }
   .admin-form-grid { grid-template-columns: 1fr; padding-inline: 16px; }
+  .admin-toolkit-groups { grid-template-columns: 1fr; padding-inline: 16px; }
+  .admin-toolkit-intro { align-items: flex-start; flex-direction: column; padding-inline: 16px; }
   .admin-form-grid .wide { grid-column: auto; }
   .admin-editor__actions { padding-inline: 16px; }
   .admin-auth-card,

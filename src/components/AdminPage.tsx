@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   LayoutDashboard,
+  Library,
   LogOut,
   Pencil,
   Plus,
@@ -21,12 +22,13 @@ import {
   removeProject,
   saveProfile,
   saveProject,
+  saveToolkit,
   seedPortfolio,
   usePortfolioContent,
 } from "../lib/content";
-import { projects as defaultProjects, type PortfolioProfile, type Project } from "../data/portfolio";
+import { projects as defaultProjects, type PortfolioProfile, type Project, type SkillGroup } from "../data/portfolio";
 
-type Tab = "projects" | "profile";
+type Tab = "projects" | "profile" | "toolkit";
 
 const blankProject = (order: number): Project => ({
   id: `project-${Date.now()}`,
@@ -55,6 +57,7 @@ export function AdminPage() {
   const [tab, setTab] = useState<Tab>("projects");
   const [profileDraft, setProfileDraft] = useState<PortfolioProfile>(content.profile);
   const [projectDrafts, setProjectDrafts] = useState<Project[]>(defaultProjects);
+  const [toolkitDraft, setToolkitDraft] = useState<SkillGroup[]>(content.skillGroups);
   const [editingId, setEditingId] = useState<string | null>(defaultProjects[0]?.id ?? null);
 
   useEffect(() => {
@@ -85,6 +88,7 @@ export function AdminPage() {
   useEffect(() => {
     if (!content.loading) setProjectDrafts(content.allProjects.length ? content.allProjects : defaultProjects);
   }, [content.loading, content.allProjects]);
+  useEffect(() => setToolkitDraft(content.skillGroups), [content.skillGroups]);
 
   const currentProject = useMemo(
     () => projectDrafts.find((project) => project.id === editingId) ?? null,
@@ -192,6 +196,7 @@ export function AdminPage() {
         <div><a className="wordmark" href="/">DEL<span>.</span></a><p>Portfolio Studio</p></div>
         <nav aria-label="Admin navigation">
           <button className={tab === "projects" ? "active" : ""} onClick={() => setTab("projects")}><LayoutDashboard size={17} /> Selected work</button>
+          <button className={tab === "toolkit" ? "active" : ""} onClick={() => setTab("toolkit")}><Library size={17} /> Toolkit library</button>
           <button className={tab === "profile" ? "active" : ""} onClick={() => setTab("profile")}><Settings2 size={17} /> Profile & contact</button>
         </nav>
         <div className="admin-sidebar__footer">
@@ -202,7 +207,7 @@ export function AdminPage() {
 
       <section className="admin-workspace">
         <header className="admin-header">
-          <div><p className="eyebrow">Content management</p><h1>{tab === "projects" ? "Selected work" : "Profile & contact"}</h1></div>
+          <div><p className="eyebrow">Content management</p><h1>{tab === "projects" ? "Selected work" : tab === "toolkit" ? "Toolkit library" : "Profile & contact"}</h1></div>
           <span>{user.email}</span>
         </header>
 
@@ -222,6 +227,13 @@ export function AdminPage() {
               <ProjectEditor project={currentProject} update={updateProject} save={persistProject} remove={deleteProject} move={moveProject} busy={busy} />
             ) : <div className="admin-empty">Add a project to begin.</div>}
           </div></>
+        ) : tab === "toolkit" ? (
+          <ToolkitEditor
+            groups={toolkitDraft}
+            update={setToolkitDraft}
+            save={async () => { setBusy(true); try { await saveToolkit(toolkitDraft); notify("Toolkit saved and synced to the portfolio."); } catch (error) { notify(error instanceof Error ? error.message : "Toolkit could not be saved."); } finally { setBusy(false); } }}
+            busy={busy}
+          />
         ) : (
           <ProfileEditor
             profile={profileDraft}
@@ -288,6 +300,24 @@ function ProfileEditor({ profile, update, save, busy }: { profile: PortfolioProf
   );
 }
 
+function ToolkitEditor({ groups, update, save, busy }: { groups: SkillGroup[]; update: (groups: SkillGroup[]) => void; save: () => void; busy: boolean }) {
+  const patchGroup = (index: number, patch: Partial<SkillGroup>) => update(groups.map((group, groupIndex) => groupIndex === index ? { ...group, ...patch } : group));
+  return <div className="admin-toolkit-editor">
+    <div className="admin-toolkit-intro">
+      <div><strong>Manage the public toolkit</strong><span>Technologies added to a project are automatically collected under “Project stack.”</span></div>
+      <button onClick={() => update([...groups, { title: "New category", skills: [] }])}><Plus size={15} /> Add category</button>
+    </div>
+    <div className="admin-toolkit-groups">
+      {groups.map((group, index) => <div className="admin-toolkit-group" key={index}>
+        <Field label="Category name" value={group.title} onChange={(value) => patchGroup(index, { title: value })} />
+        <TextArea label="Skills (comma separated)" value={group.skills.join(", ")} onChange={(value) => patchGroup(index, { skills: value.split(",").map((skill) => skill.trim()).filter(Boolean) })} />
+        <button className="admin-remove-category" onClick={() => update(groups.filter((_, groupIndex) => groupIndex !== index))}><Trash2 size={14} /> Remove category</button>
+      </div>)}
+    </div>
+    <div className="admin-editor__actions admin-editor__actions--right"><button className="admin-primary" onClick={save} disabled={busy}><Save size={16} /> {busy ? "Saving…" : "Save toolkit"}</button></div>
+  </div>;
+}
+
 function Field({ label, value, onChange, wide, type = "text" }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean; type?: string }) { return <label className={wide ? "wide" : ""}>{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
 
 function ImageUpload({ label, value, path, onChange, wide }: { label: string; value: string; path: string; onChange: (value: string) => void; wide?: boolean }) {
@@ -314,7 +344,12 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
       await services.storageModule.uploadBytes(imageRef, file, { contentType: file.type });
       onChange(await services.storageModule.getDownloadURL(imageRef));
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "The image could not be uploaded.");
+      const uploadMessage = uploadError instanceof Error ? uploadError.message : "";
+      setError(
+        uploadMessage.includes("storage/unauthorized")
+          ? "Firebase Storage denied the upload. Publish the included storage.rules file in Firebase Storage → Rules, or paste a public image URL below."
+          : uploadMessage || "The image could not be uploaded. You can paste a public image URL below instead.",
+      );
     } finally {
       setUploading(false);
     }
@@ -331,6 +366,7 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
         {error ? <small className="admin-upload-error">{error}</small> : null}
       </div>
     </div>
+    <label className="admin-image-url">Or paste a public image URL<input type="url" value={value} placeholder="https://example.com/logo.png" onChange={(event) => { setError(""); onChange(event.target.value); }} /></label>
   </div>;
 }
 function TextArea({ label, value, onChange, wide }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean }) { return <label className={wide ? "wide" : ""}>{label}<textarea rows={4} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }

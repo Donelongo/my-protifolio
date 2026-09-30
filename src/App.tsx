@@ -55,7 +55,7 @@ export function App() {
           <About profile={content.profile} />
           <Projects projects={content.projects} />
           <Experience />
-          <Skills />
+          <Skills groups={content.skillGroups} />
           <Contact notify={notify} profile={content.profile} />
         </div>
       </main>

@@ -35,7 +35,8 @@ import {
   type Project,
   type ProjectCategory,
   projects,
-  skillGroups,
+  skillGroups as defaultSkillGroups,
+  type SkillGroup,
 } from "../data/portfolio";
 import {
   MagneticLink,
@@ -412,7 +413,7 @@ export function Experience() {
   );
 }
 
-export function Skills() {
+export function Skills({ groups = defaultSkillGroups }: { groups?: SkillGroup[] }) {
   return (
     <section id="skills" className="section-block">
       <div className="site-container">
@@ -422,8 +423,8 @@ export function Skills() {
           description="Technologies I use across product development."
         />
         <div className="skills-grid">
-          {skillGroups.map((group, index) => {
-            const Icon = skillIcons[index];
+          {groups.map((group, index) => {
+            const Icon = skillIcons[index % skillIcons.length];
             return (
               <Reveal key={group.title} className="skill-card" delay={index * 0.055}>
                 <div className="skill-card__heading">

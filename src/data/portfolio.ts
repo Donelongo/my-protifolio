@@ -1,5 +1,10 @@
 export type ProjectCategory = "Web" | "Mobile" | "GIS" | "Team";
 
+export type SkillGroup = {
+  title: string;
+  skills: string[];
+};
+
 export type Project = {
   id: string;
   title: string;
@@ -203,7 +208,7 @@ export const experience = [
   },
 ];
 
-export const skillGroups = [
+export const skillGroups: SkillGroup[] = [
   {
     title: "Frontend",
     skills: [
