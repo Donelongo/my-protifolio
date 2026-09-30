@@ -699,6 +699,33 @@ img {
 .project-visual--orange { background: radial-gradient(circle at 50% 48%, #46301d, #17120e 62%); color: #f59a42; }
 .project-visual--cyan { background: radial-gradient(circle at 50% 48%, #14343d, #0c171a 62%); color: #65d7ed; }
 .project-visual--violet { background: radial-gradient(circle at 50% 48%, #2e2144, #15101c 62%); color: #b692ef; }
+.project-visual--red { background: radial-gradient(circle at 50% 48%, #4a2023, #190d0f 62%); color: #ff858c; }
+.project-visual--gold { background: radial-gradient(circle at 50% 48%, #493b16, #18140b 62%); color: #f6cb58; }
+.project-visual--teal { background: radial-gradient(circle at 50% 48%, #123d39, #0a1817 62%); color: #5ee1cf; }
+.project-visual--rose { background: radial-gradient(circle at 50% 48%, #49243a, #190f16 62%); color: #f08dbd; }
+.project-visual--indigo { background: radial-gradient(circle at 50% 48%, #272c58, #101221 62%); color: #969fff; }
+.project-visual--monochrome { background: radial-gradient(circle at 50% 48%, #303238, #111214 62%); color: #e7e9ed; }
+.project-visual--blue-orange {
+  background:
+    radial-gradient(circle at 25% 30%, rgba(32, 172, 235, .42), transparent 42%),
+    radial-gradient(circle at 78% 72%, rgba(255, 145, 25, .4), transparent 44%),
+    #101821;
+  color: #45c7f1;
+}
+.project-visual--green-blue {
+  background:
+    radial-gradient(circle at 24% 28%, rgba(34, 197, 94, .38), transparent 42%),
+    radial-gradient(circle at 78% 72%, rgba(59, 130, 246, .42), transparent 44%),
+    #0d1719;
+  color: #72e4ad;
+}
+.project-visual--purple-pink {
+  background:
+    radial-gradient(circle at 24% 28%, rgba(139, 92, 246, .42), transparent 42%),
+    radial-gradient(circle at 78% 72%, rgba(236, 72, 153, .4), transparent 44%),
+    #17101f;
+  color: #d19cff;
+}
 
 .project-number {
   position: absolute;

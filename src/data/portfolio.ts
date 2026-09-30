@@ -13,7 +13,21 @@ export type Project = {
   googlePlayUrl?: string;
   appStoreUrl?: string;
   collaboration?: string;
-  visualTone: "emerald" | "blue" | "orange" | "cyan" | "violet";
+  visualTone:
+    | "emerald"
+    | "blue"
+    | "orange"
+    | "cyan"
+    | "violet"
+    | "red"
+    | "gold"
+    | "teal"
+    | "rose"
+    | "indigo"
+    | "monochrome"
+    | "blue-orange"
+    | "green-blue"
+    | "purple-pink";
   icon: "music" | "mobile" | "mechanical" | "map" | "team";
   imageUrl?: string;
   assetKey?: "catholic-mezmur" | "ore-mechanical" | "dentrace";

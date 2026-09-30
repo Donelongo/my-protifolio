@@ -255,7 +255,13 @@ function ProjectEditor({ project, update, save, remove, move, busy }: { project:
         <Field label="Collaboration note" value={project.collaboration ?? ""} onChange={(value) => update({ collaboration: value || undefined })} />
         <ImageUpload label="Project image or logo" value={project.imageUrl ?? ""} path={`projects/${project.id}`} onChange={(value) => update({ imageUrl: value || undefined, assetKey: undefined })} wide />
         <Select label="Existing logo" value={project.assetKey ?? ""} options={["", "catholic-mezmur", "ore-mechanical", "dentrace"]} onChange={(value) => update({ assetKey: (value || undefined) as Project["assetKey"] })} />
-        <Select label="Visual tone" value={project.visualTone} options={["emerald", "blue", "orange", "cyan", "violet"]} onChange={(value) => update({ visualTone: value as Project["visualTone"] })} />
+        <Select
+          label="Visual tone"
+          value={project.visualTone}
+          options={["emerald", "blue", "orange", "cyan", "violet", "red", "gold", "teal", "rose", "indigo", "monochrome", "blue-orange", "green-blue", "purple-pink"]}
+          onChange={(value) => update({ visualTone: value as Project["visualTone"] })}
+          formatOption={(option) => option.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" + ")}
+        />
         <Select label="Fallback icon" value={project.icon} options={["music", "mobile", "mechanical", "map", "team"]} onChange={(value) => update({ icon: value as Project["icon"] })} />
       </div>
       <div className="admin-editor__actions"><button className="admin-danger" onClick={remove}><Trash2 size={16} /> Delete</button><button className="admin-primary" onClick={save} disabled={busy}><Save size={16} /> {busy ? "Saving…" : "Save project"}</button></div>
@@ -328,7 +334,7 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
   </div>;
 }
 function TextArea({ label, value, onChange, wide }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean }) { return <label className={wide ? "wide" : ""}>{label}<textarea rows={4} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
-function Select({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) { return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option || "none"} value={option}>{option || "None"}</option>)}</select></label>; }
+function Select({ label, value, options, onChange, formatOption }: { label: string; value: string; options: string[]; onChange: (value: string) => void; formatOption?: (option: string) => string }) { return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option || "none"} value={option}>{option ? (formatOption?.(option) ?? option) : "None"}</option>)}</select></label>; }
 
 function FirebaseSetup() {
   return <main className="admin-setup"><div><p className="eyebrow">One-time setup</p><h1>Connect Firebase<span>.</span></h1><p>The admin workspace is built, but it needs your Firebase web-app configuration before sign-in and saving can work.</p><ol><li>Create or open a Firebase project.</li><li>Enable Email/Password in Authentication and create your admin user.</li><li>Create Firestore and publish the included <code>firestore.rules</code>.</li><li>Copy <code>.env.example</code> to <code>.env.local</code> and add your Firebase web configuration.</li><li>Restart the local server or redeploy Vercel with the same environment variables.</li></ol><button className="admin-primary" onClick={async () => { try { await seedPortfolio(); } catch { /* setup state */ } }} disabled>Initialize existing portfolio after connection</button><a href="/"><ArrowLeft size={15} /> Return to portfolio</a></div></main>;
