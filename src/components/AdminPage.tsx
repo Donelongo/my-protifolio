@@ -13,6 +13,7 @@ import {
   Save,
   Settings2,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
 import { firebaseConfigured, getFirebaseServices } from "../lib/firebase";
@@ -252,7 +253,7 @@ function ProjectEditor({ project, update, save, remove, move, busy }: { project:
         <Field label="Google Play URL" value={project.googlePlayUrl ?? ""} onChange={(value) => update({ googlePlayUrl: value || undefined })} />
         <Field label="App Store URL" value={project.appStoreUrl ?? ""} onChange={(value) => update({ appStoreUrl: value || undefined })} />
         <Field label="Collaboration note" value={project.collaboration ?? ""} onChange={(value) => update({ collaboration: value || undefined })} />
-        <Field label="Custom image URL" value={project.imageUrl ?? ""} onChange={(value) => update({ imageUrl: value || undefined })} wide />
+        <ImageUpload label="Project image or logo" value={project.imageUrl ?? ""} path={`projects/${project.id}`} onChange={(value) => update({ imageUrl: value || undefined, assetKey: undefined })} wide />
         <Select label="Existing logo" value={project.assetKey ?? ""} options={["", "catholic-mezmur", "ore-mechanical", "dentrace"]} onChange={(value) => update({ assetKey: (value || undefined) as Project["assetKey"] })} />
         <Select label="Visual tone" value={project.visualTone} options={["emerald", "blue", "orange", "cyan", "violet"]} onChange={(value) => update({ visualTone: value as Project["visualTone"] })} />
         <Select label="Fallback icon" value={project.icon} options={["music", "mobile", "mechanical", "map", "team"]} onChange={(value) => update({ icon: value as Project["icon"] })} />
@@ -272,7 +273,7 @@ function ProfileEditor({ profile, update, save, busy }: { profile: PortfolioProf
       <Field label="Phone" value={profile.phone} onChange={(value) => update("phone", value)} />
       <Field label="GitHub URL" value={profile.github} onChange={(value) => update("github", value)} />
       <Field label="LinkedIn URL" value={profile.linkedin} onChange={(value) => update("linkedin", value)} wide />
-      <Field label="Portrait image URL" value={profile.portraitUrl ?? ""} onChange={(value) => update("portraitUrl", value)} wide />
+      <ImageUpload label="Profile portrait" value={profile.portraitUrl ?? ""} path="profile" onChange={(value) => update("portraitUrl", value)} wide />
       <Field label="Hero headline" value={profile.headline} onChange={(value) => update("headline", value)} wide />
       <TextArea label="Hero summary" value={profile.summary} onChange={(value) => update("summary", value)} wide />
       <Field label="About section title" value={profile.aboutTitle} onChange={(value) => update("aboutTitle", value)} wide />
@@ -282,6 +283,50 @@ function ProfileEditor({ profile, update, save, busy }: { profile: PortfolioProf
 }
 
 function Field({ label, value, onChange, wide, type = "text" }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean; type?: string }) { return <label className={wide ? "wide" : ""}>{label}<input type={type} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
+
+function ImageUpload({ label, value, path, onChange, wide }: { label: string; value: string; path: string; onChange: (value: string) => void; wide?: boolean }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const uploadImage = async (file?: File) => {
+    if (!file) return;
+    setError("");
+    if (!file.type.startsWith("image/")) {
+      setError("Choose a PNG, JPG, WebP, GIF, or SVG image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("The image must be smaller than 5 MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const services = await getFirebaseServices();
+      if (!services) throw new Error("Firebase is not connected.");
+      const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]/g, "-");
+      const imageRef = services.storageModule.ref(services.storage, `portfolio-media/${path}/${Date.now()}-${safeName}`);
+      await services.storageModule.uploadBytes(imageRef, file, { contentType: file.type });
+      onChange(await services.storageModule.getDownloadURL(imageRef));
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "The image could not be uploaded.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return <div className={`admin-image-upload${wide ? " wide" : ""}`}>
+    <span>{label}</span>
+    <div className="admin-image-upload__content">
+      {value ? <img src={value} alt="Current upload preview" /> : <div className="admin-image-upload__placeholder"><Upload size={22} /><small>No image selected</small></div>}
+      <div>
+        <label className="admin-upload-button"><Upload size={15} /> {uploading ? "Uploading…" : value ? "Replace image" : "Choose image"}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" disabled={uploading} onChange={(event) => { void uploadImage(event.target.files?.[0]); event.target.value = ""; }} /></label>
+        {value ? <button type="button" className="admin-remove-image" onClick={() => onChange("")}>Remove image</button> : null}
+        <small>PNG, JPG, WebP, GIF or SVG · maximum 5 MB</small>
+        {error ? <small className="admin-upload-error">{error}</small> : null}
+      </div>
+    </div>
+  </div>;
+}
 function TextArea({ label, value, onChange, wide }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean }) { return <label className={wide ? "wide" : ""}>{label}<textarea rows={4} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
 function Select({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) { return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option || "none"} value={option}>{option || "None"}</option>)}</select></label>; }
 

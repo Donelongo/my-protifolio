@@ -1653,6 +1653,18 @@ img {
 .admin-switch input { accent-color: var(--green); }
 .admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; padding: 4px 22px 26px; }
 .admin-form-grid .wide { grid-column: 1 / -1; }
+.admin-image-upload { display: grid; gap: 8px; margin-top: 18px; color: #8e9aaa; font-size: .69rem; font-weight: 600; letter-spacing: .055em; text-transform: uppercase; }
+.admin-image-upload__content { display: flex; align-items: center; gap: 16px; min-height: 116px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #0b0c0e; }
+.admin-image-upload__content > img,
+.admin-image-upload__placeholder { width: 132px; height: 92px; flex: 0 0 auto; border: 1px solid var(--border); border-radius: 8px; background: #101216; object-fit: contain; }
+.admin-image-upload__placeholder { display: grid; place-content: center; justify-items: center; gap: 7px; color: #657181; }
+.admin-image-upload__content > div:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.admin-image-upload__content small { width: 100%; color: #657181; font-size: .66rem; font-weight: 500; letter-spacing: normal; text-transform: none; }
+.admin-upload-button,
+.admin-remove-image { display: inline-flex !important; width: auto !important; min-height: 38px; align-items: center; justify-content: center; gap: 7px; margin: 0 !important; padding: 0 12px; border: 1px solid rgba(34,197,94,.3); border-radius: 8px; background: rgba(34,197,94,.1); color: #9ff2ba !important; cursor: pointer; font-size: .7rem !important; letter-spacing: normal !important; text-transform: none !important; }
+.admin-upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+.admin-remove-image { border-color: var(--border); background: transparent; color: #aab4c1 !important; }
+.admin-upload-error { color: #fca5a5 !important; }
 .admin-editor__actions { display: flex; justify-content: space-between; gap: 12px; padding: 18px 22px; border-top: 1px solid var(--border); background: #0b0c0e; }
 .admin-editor__actions--right { justify-content: flex-end; }
 .admin-profile-editor { max-width: 920px; }

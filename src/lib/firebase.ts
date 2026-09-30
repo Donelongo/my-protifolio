@@ -14,7 +14,9 @@ export const firebaseConfigured = Boolean(
 let servicesPromise: Promise<{
   auth: import("firebase/auth").Auth;
   db: import("firebase/firestore").Firestore;
+  storage: import("firebase/storage").FirebaseStorage;
   firestore: typeof import("firebase/firestore");
+  storageModule: typeof import("firebase/storage");
 }> | null = null;
 
 export function getFirebaseServices() {
@@ -24,14 +26,17 @@ export function getFirebaseServices() {
       import("firebase/app"),
       import("firebase/auth"),
       import("firebase/firestore"),
-    ]).then(([appModule, authModule, firestore]) => {
+      import("firebase/storage"),
+    ]).then(([appModule, authModule, firestore, storageModule]) => {
       const app = appModule.getApps().length
         ? appModule.getApp()
         : appModule.initializeApp(firebaseConfig);
       return {
         auth: authModule.getAuth(app),
         db: firestore.getFirestore(app),
+        storage: storageModule.getStorage(app),
         firestore,
+        storageModule,
       };
     });
   }
