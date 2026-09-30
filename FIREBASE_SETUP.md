@@ -9,8 +9,7 @@ The public portfolio continues to work with its bundled content before Firebase 
 3. In Authentication, enable **Email/Password**.
 4. Create the admin user with `dagmawieliaswork@gmail.com`.
 5. Create a Firestore database.
-6. Publish `firestore.rules` to **Cloud Firestore**. Do not paste `storage.rules` into the Firestore rules editor; that blocks all saves.
-7. If file uploads are needed, upgrade the Firebase project to the Blaze plan, create a Firebase Storage bucket, and publish `storage.rules` to **Storage**. Firebase requires Blaze billing for Storage ([official guidance](https://firebase.google.com/docs/storage/faqs-storage-changes-announced-sept-2024)). The image URL field works without Storage.
+6. Publish the rules from `firestore.rules`.
 
 ## 2. Configure local development
 
@@ -26,15 +25,10 @@ VITE_FIREBASE_APP_ID=...
 ```
 
 Restart the Vite server, visit `/admin`, and sign in. Select **Initialize existing content** once to copy the current profile and five projects into Firestore.
-The first project save also initializes the five bundled projects if the collection is empty, so adding a new project does not hide the existing work.
 
 ## 3. Configure Vercel
 
 Add the same six `VITE_FIREBASE_*` variables to the Vercel project for Production, Preview, and Development, then redeploy.
-
-## Rules deployment
-
-The included `firebase.json` maps each rules file to the correct service. From this repository, run `firebase deploy --only firestore:rules --project portifolio-d501f` to update Firestore. After the Storage bucket exists, run `firebase deploy --only storage --project portifolio-d501f` for uploads. Check that `VITE_FIREBASE_STORAGE_BUCKET` names the bucket that was created.
 
 ## Security
 

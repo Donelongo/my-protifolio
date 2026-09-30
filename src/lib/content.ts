@@ -84,23 +84,10 @@ export async function saveProfile(profile: PortfolioProfile) {
 export async function saveProject(project: Project) {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is not configured.");
-  const { db, firestore } = services;
-  const projectRef = firestore.doc(db, "projects", project.id);
-  const existingProjects = await firestore.getDocs(firestore.collection(db, "projects"));
-  if (existingProjects.empty) {
-    // Keep the bundled projects visible when the first admin save initializes Firestore.
-    const batch = firestore.writeBatch(db);
-    defaultProjects.forEach((defaultProject) => batch.set(
-      firestore.doc(db, "projects", defaultProject.id),
-      withoutUndefined(defaultProject.id === project.id ? project : defaultProject),
-    ));
-    if (!defaultProjects.some((defaultProject) => defaultProject.id === project.id)) {
-      batch.set(projectRef, withoutUndefined(project));
-    }
-    await batch.commit();
-    return;
-  }
-  await firestore.setDoc(projectRef, withoutUndefined(project));
+  await services.firestore.setDoc(
+    services.firestore.doc(services.db, "projects", project.id),
+    withoutUndefined(project),
+  );
 }
 
 export async function removeProject(id: string) {
