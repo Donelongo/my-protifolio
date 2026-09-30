@@ -27,6 +27,15 @@ import {
 import { projects as defaultProjects, type PortfolioProfile, type Project } from "../data/portfolio";
 
 type Tab = "projects" | "profile";
+type Notice = { text: string; kind: "success" | "error" };
+
+function isHttpsUrl(value: string) {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 const blankProject = (order: number): Project => ({
   id: `project-${Date.now()}`,
@@ -50,7 +59,7 @@ export function AdminPage() {
   const [authReady, setAuthReady] = useState(!firebaseConfigured);
   const [email, setEmail] = useState("dagmawieliaswork@gmail.com");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<Notice | null>(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<Tab>("projects");
   const [profileDraft, setProfileDraft] = useState<PortfolioProfile>(content.profile);
@@ -91,9 +100,9 @@ export function AdminPage() {
     [editingId, projectDrafts],
   );
 
-  const notify = (text: string) => {
-    setMessage(text);
-    window.setTimeout(() => setMessage(""), 3600);
+  const notify = (text: string, kind: Notice["kind"] = "success") => {
+    setMessage({ text, kind });
+    window.setTimeout(() => setMessage(null), 5200);
   };
 
   const login = async (event: FormEvent) => {
@@ -104,7 +113,7 @@ export function AdminPage() {
       await signInWithEmailAndPassword(firebaseAuth, email, password);
       setPassword("");
     } catch {
-      notify("Sign-in failed. Check the email, password, and Firebase Authentication setup.");
+      notify("Sign-in failed. Check the email, password, and Firebase Authentication setup.", "error");
     } finally {
       setBusy(false);
     }
@@ -120,7 +129,11 @@ export function AdminPage() {
   const persistProject = async () => {
     if (!currentProject) return;
     if (!currentProject.title.trim() || !currentProject.id.trim()) {
-      notify("Project title and ID are required.");
+      notify("Project title and ID are required.", "error");
+      return;
+    }
+    if (currentProject.imageUrl && !isHttpsUrl(currentProject.imageUrl)) {
+      notify("Use a complete HTTPS image URL, or remove the image URL.", "error");
       return;
     }
     setBusy(true);
@@ -128,7 +141,7 @@ export function AdminPage() {
       await saveProject(currentProject);
       notify("Project saved and synced to the portfolio.");
     } catch (error) {
-      notify(error instanceof Error ? error.message : "Project could not be saved.");
+      notify(error instanceof Error ? error.message : "Project could not be saved.", "error");
     } finally {
       setBusy(false);
     }
@@ -144,7 +157,7 @@ export function AdminPage() {
       setEditingId(remaining[0]?.id ?? null);
       notify("Project removed.");
     } catch (error) {
-      notify(error instanceof Error ? error.message : "Project could not be removed.");
+      notify(error instanceof Error ? error.message : "Project could not be removed.", "error");
     } finally {
       setBusy(false);
     }
@@ -163,7 +176,7 @@ export function AdminPage() {
       await Promise.all(normalized.map(saveProject));
       notify("Project order updated.");
     } catch {
-      notify("The new order could not be saved.");
+      notify("The new order could not be saved.", "error");
     }
   };
 
@@ -180,7 +193,7 @@ export function AdminPage() {
           <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
           <button className="admin-primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
-          {message ? <div className="admin-message" role="status">{message}</div> : null}
+          {message ? <div className="admin-message" role="status">{message.text}</div> : null}
         </form>
       </main>
     );
@@ -208,7 +221,7 @@ export function AdminPage() {
 
         {tab === "projects" ? (
           <>
-          {!content.hasRemoteProjects ? <div className="admin-seed-banner"><div><strong>Load the current portfolio into Firestore</strong><span>This creates editable copies of the five real projects and your current profile.</span></div><button className="admin-primary" disabled={busy} onClick={async () => { setBusy(true); try { await seedPortfolio(); notify("Existing portfolio loaded into the admin workspace."); } catch (error) { notify(error instanceof Error ? error.message : "Could not initialize the portfolio."); } finally { setBusy(false); } }}>Initialize existing content</button></div> : null}
+          {!content.hasRemoteProjects ? <div className="admin-seed-banner"><div><strong>Load the current portfolio into Firestore</strong><span>This creates editable copies of the five real projects and your current profile.</span></div><button className="admin-primary" disabled={busy} onClick={async () => { setBusy(true); try { await seedPortfolio(); notify("Existing portfolio loaded into the admin workspace."); } catch (error) { notify(error instanceof Error ? error.message : "Could not initialize the portfolio.", "error"); } finally { setBusy(false); } }}>Initialize existing content</button></div> : null}
           <div className="admin-project-layout">
             <div className="admin-project-list">
               <div className="admin-list-heading"><span>{projectDrafts.length} projects</span><button onClick={() => { const item = blankProject(projectDrafts.length); setProjectDrafts((items) => [...items, item]); setEditingId(item.id); }}><Plus size={15} /> Add project</button></div>
@@ -226,11 +239,11 @@ export function AdminPage() {
           <ProfileEditor
             profile={profileDraft}
             update={(key, value) => setProfileDraft((current) => ({ ...current, [key]: value }))}
-            save={async () => { setBusy(true); try { await saveProfile(profileDraft); notify("Profile saved and synced to the portfolio."); } catch (error) { notify(error instanceof Error ? error.message : "Profile could not be saved."); } finally { setBusy(false); } }}
+            save={async () => { if (profileDraft.portraitUrl && !isHttpsUrl(profileDraft.portraitUrl)) { notify("Use a complete HTTPS portrait URL, or remove the URL.", "error"); return; } setBusy(true); try { await saveProfile(profileDraft); notify("Profile saved and synced to the portfolio."); } catch (error) { notify(error instanceof Error ? error.message : "Profile could not be saved.", "error"); } finally { setBusy(false); } }}
             busy={busy}
           />
         )}
-        {message ? <div className="admin-toast" role="status"><Check size={15} /> {message}</div> : null}
+        {message ? <div className={`admin-toast${message.kind === "error" ? " admin-toast--error" : ""}`} role={message.kind === "error" ? "alert" : "status"}>{message.kind === "success" ? <Check size={15} /> : null}{message.text}</div> : null}
       </section>
     </main>
   );
@@ -293,6 +306,12 @@ function Field({ label, value, onChange, wide, type = "text" }: { label: string;
 function ImageUpload({ label, value, path, onChange, wide }: { label: string; value: string; path: string; onChange: (value: string) => void; wide?: boolean }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [previewFailed, setPreviewFailed] = useState(false);
+
+  useEffect(() => {
+    setPreviewFailed(false);
+    setError("");
+  }, [value]);
 
   const uploadImage = async (file?: File) => {
     if (!file) return;
@@ -314,7 +333,10 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
       await services.storageModule.uploadBytes(imageRef, file, { contentType: file.type });
       onChange(await services.storageModule.getDownloadURL(imageRef));
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "The image could not be uploaded.");
+      const code = typeof uploadError === "object" && uploadError !== null && "code" in uploadError ? String(uploadError.code) : "";
+      setError(code === "storage/bucket-not-found" || code === "storage/no-default-bucket"
+        ? "Firebase Storage is not set up yet. Use an image URL for now."
+        : uploadError instanceof Error ? uploadError.message : "The image could not be uploaded.");
     } finally {
       setUploading(false);
     }
@@ -323,7 +345,7 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
   return <div className={`admin-image-upload${wide ? " wide" : ""}`}>
     <span>{label}</span>
     <div className="admin-image-upload__content">
-      {value ? <img src={value} alt="Current upload preview" /> : <div className="admin-image-upload__placeholder"><Upload size={22} /><small>No image selected</small></div>}
+      {value && isHttpsUrl(value) && !previewFailed ? <img src={value} alt={`${label} preview`} onError={() => setPreviewFailed(true)} /> : <div className="admin-image-upload__placeholder"><Upload size={22} /><small>{previewFailed ? "Preview unavailable" : "No image selected"}</small></div>}
       <div>
         <label className="admin-upload-button"><Upload size={15} /> {uploading ? "Uploading…" : value ? "Replace image" : "Choose image"}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" disabled={uploading} onChange={(event) => { void uploadImage(event.target.files?.[0]); event.target.value = ""; }} /></label>
         {value ? <button type="button" className="admin-remove-image" onClick={() => onChange("")}>Remove image</button> : null}
@@ -331,6 +353,10 @@ function ImageUpload({ label, value, path, onChange, wide }: { label: string; va
         {error ? <small className="admin-upload-error">{error}</small> : null}
       </div>
     </div>
+    <label className="admin-image-upload__url">Or use an image URL
+      <input type="url" inputMode="url" placeholder="https://example.com/image.jpg" value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+    {previewFailed ? <small className="admin-upload-error">The image could not be previewed. Check that the URL points directly to a public image.</small> : null}
   </div>;
 }
 function TextArea({ label, value, onChange, wide }: { label: string; value: string; onChange: (value: string) => void; wide?: boolean }) { return <label className={wide ? "wide" : ""}>{label}<textarea rows={4} value={value} onChange={(event) => onChange(event.target.value)} /></label>; }
